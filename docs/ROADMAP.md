@@ -1,33 +1,43 @@
 # Roadmap
 
-This roadmap is exploratory. Milestones depend on technical feasibility and, for game integration, authorization and availability of official PC game components.
+This roadmap tracks the independent Windows utility. Game-specific integration is not planned unless authorized PC components and required permissions become available.
 
 ## Phase 0 — Repository foundation
 - [x] Create project README and clarify independent-project status.
 - [x] Add architecture and roadmap documentation.
 - [x] Add contribution, security, editor, and ignore conventions.
-- [ ] Choose and document the Windows application framework.
-- [ ] Add a minimal Windows 11 application shell.
+- [x] Choose C#/.NET 8 and WPF for the Windows desktop application.
+- [x] Add the initial Windows application shell.
 
 ## Phase 1 — Windows 11 foundation
-- [ ] Establish a reproducible build environment.
-- [ ] Add Windows 11 and architecture detection.
-- [ ] Add read-only system diagnostics.
-- [ ] Add automated tests for compatibility checks.
-- [ ] Define packaging and signing requirements.
+- [x] Establish a reproducible solution and Windows CI build.
+- [x] Add Windows 11 build detection and platform gating.
+- [x] Add x64 and experimental ARM64 classification.
+- [x] Add read-only system diagnostics.
+- [x] Add automated tests for platform compatibility rules.
+- [x] Add user-initiated JSON report export.
+- [ ] Validate a clean build and test run through GitHub Actions.
 
-## Phase 2 — Application essentials
-- [ ] Create a simple settings and diagnostics interface.
-- [ ] Add local logging with privacy safeguards.
-- [ ] Add clear error messages and support instructions.
-- [ ] Establish a tested update strategy.
+## Phase 2 — Diagnostics improvements
+- [ ] Improve GPU inventory with driver version and display-device details.
+- [ ] Add graphics API capability reporting where supported by documented Windows APIs.
+- [ ] Add diagnostic error categorization and more resilient WMI fallback behavior.
+- [ ] Add unit tests for report generation and inventory edge cases.
+- [ ] Add structured local logging and optional report redaction.
+- [ ] Improve accessibility, interface scaling, and keyboard navigation.
 
-## Phase 3 — Authorized integration research
-- [ ] Review official Rockstar announcements and developer/distribution requirements.
-- [ ] Confirm legal and technical feasibility before implementing integration.
-- [ ] Document verified requirements from an authorized PC release.
+## Phase 3 — Packaging and release engineering
+- [ ] Choose a signed installer or MSIX packaging approach.
+- [ ] Define versioning and release channels.
+- [ ] Add artifact publishing to CI after build validation.
+- [ ] Document update and rollback behavior.
+
+## Phase 4 — Authorized integration research
+- [ ] Review official Rockstar announcements and distribution requirements.
+- [ ] Confirm legal and technical feasibility before considering integration.
+- [ ] Document verified requirements only from an authorized PC release.
 - [ ] Prototype only against authorized components.
 
 ## Release policy
 
-No release will be described as a playable GTA VI PC port unless it genuinely provides that functionality through authorized game components. Until then, releases—if any—will be clearly labeled as development tools or previews.
+No release will be described as a playable GTA VI PC port unless it genuinely provides that functionality through authorized game components. Until then, releases will be clearly labeled as independent Windows diagnostic tools or previews.
