@@ -12,6 +12,7 @@ public partial class MainWindow : Window
 {
     private readonly SystemInfoService _systemInfoService = new();
     private readonly PlatformCompatibilityService _platformService = new();
+    private readonly DiagnosticAssessmentService _diagnosticAssessmentService = new();
     private readonly ObservableCollection<DiagnosticItem> _diagnostics = new();
 
     public MainWindow()
@@ -51,11 +52,17 @@ public partial class MainWindow : Window
                 platform.Summary,
                 platform.Details));
 
+            var assessment = _diagnosticAssessmentService.Evaluate(results);
+            results.Insert(0, new DiagnosticItem(
+                $"Overall diagnostic status: {assessment.Status}",
+                assessment.Summary,
+                assessment.Details));
+
             _diagnostics.Clear();
             foreach (var item in results)
                 _diagnostics.Add(item);
 
-            StatusText.Text = $"Scan complete • {results.Count} diagnostic categories • {DateTimeOffset.Now:t}";
+            StatusText.Text = $"Scan complete • {assessment.Status} • {DateTimeOffset.Now:t}";
             ExportButton.IsEnabled = true;
         }
         catch (Exception ex)
