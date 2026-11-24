@@ -8,8 +8,8 @@ The application is divided into:
 - **UI:** WPF dashboard and user-initiated scan/export actions.
 - **Models:** Small immutable diagnostic and platform-assessment data models.
 - **Services:** Read-only Windows and hardware inventory, plus platform support assessment.
-- **Tests:** Unit tests for Windows build and CPU architecture policy.
-- **CI:** A Windows GitHub Actions workflow that restores, builds, and runs tests.
+- **Tests:** Unit tests for Windows build and CPU architecture policy, GPU formatting, driver health, and diagnostic assessment.
+- **CI:** A Windows GitHub Actions workflow that restores, builds, tests, publishes a self-contained Windows x64 preview, and uploads the ZIP artifact only after successful build and test steps.
 
 The current app is a system-readiness utility. It does not launch, modify, emulate, or provide access to GTA VI.
 
@@ -46,7 +46,7 @@ The inventory service reads:
 - System manufacturer and model.
 - BIOS version.
 - DirectX registry version (informational only; it does not establish supported Direct3D feature levels).
-- Ready local fixed-drive capacity and free space.
+- Ready local fixed-disk capacity and free space.
 
 WMI and registry failures are handled as unavailable values where possible. The scan does not require administrator privileges by design, and results may be incomplete on systems where Windows restricts inventory access. GPU memory values are sourced from the WMI AdapterRAM field and may be capped or reported imprecisely by some drivers; they must not be treated as authoritative dedicated-VRAM measurements.
 
@@ -72,9 +72,11 @@ The current policy is intentionally narrow:
 
 This is an application platform policy, not a statement about GTA VI compatibility or requirements.
 
-### 7. Automated tests
+### 7. Automated tests and preview packaging
 
 The test project covers the Windows build threshold, architecture classification, graphics formatting, driver-health formatting, and diagnostic status classification. More tests are needed for WMI failures, report serialization, and UI behavior.
+
+After restore, build, and tests succeed, CI publishes a self-contained `win-x64` application, creates a portable ZIP, and uploads it as a GitHub Actions artifact with a 14-day retention period. This is a development preview, not an installer or signed stable release. The artifact must still be installed/launched and exercised on a clean physical Windows 11 x64 machine before the first public beta is declared.
 
 ## Privacy and diagnostics
 
