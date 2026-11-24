@@ -13,7 +13,7 @@ The project is intentionally scoped to **Windows 11**. Windows 10 is not a targe
 
 ## Project status
 
-<badge>Early planning / groundwork</badge>
+**Status: Early planning / groundwork**
 
 The repository is at its foundation stage. Initial work focuses on documentation, project structure, development standards, and a clear technical plan. There is currently no playable game, installer, launcher, compatibility layer, or performance patch.
 
