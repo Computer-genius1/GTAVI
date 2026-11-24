@@ -49,7 +49,11 @@ The inventory service reads:
 
 WMI and registry failures are handled as unavailable values where possible. The scan does not require administrator privileges by design, and results may be incomplete on systems where Windows restricts inventory access. GPU memory values are sourced from the WMI AdapterRAM field and may be capped or reported imprecisely by some drivers; they must not be treated as authoritative dedicated-VRAM measurements.
 
-### 3. Platform assessment
+### 3. Graphics API capability probes
+
+The scan attempts to create a Direct3D 11 hardware device and records the highest feature level returned by the runtime. It separately calls `D3D12CreateDevice` to check whether a Direct3D 12 device can be created at feature level 11_0 or higher. These probes use the default hardware adapter selected by Windows; they do not enumerate every adapter, test optional DirectX 12 features, benchmark performance, or establish compatibility with any game. Remote sessions, virtual adapters, driver state, or system policy can affect the result. The DirectX registry version remains informational and is not used as a substitute for these API checks.
+
+### 4. Platform assessment
 
 The current policy is intentionally narrow:
 - Windows builds below 22000 are unsupported.
@@ -59,7 +63,7 @@ The current policy is intentionally narrow:
 
 This is an application platform policy, not a statement about GTA VI compatibility or requirements.
 
-### 4. Automated tests
+### 5. Automated tests
 
 The test project covers the Windows build threshold and architecture classification. More tests are needed for WMI failures, report serialization, and UI behavior.
 
