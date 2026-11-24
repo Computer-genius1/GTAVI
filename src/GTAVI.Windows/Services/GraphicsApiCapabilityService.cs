@@ -105,10 +105,11 @@ public sealed class GraphicsApiCapabilityService
 
         try
         {
+            var deviceIid = Direct3D12DeviceIid;
             var result = D3D12CreateDevice(
                 IntPtr.Zero,
                 FeatureLevel11_0,
-                ref Direct3D12DeviceIid,
+                ref deviceIid,
                 out device);
 
             return result >= 0 && device != IntPtr.Zero
@@ -158,7 +159,7 @@ public sealed class GraphicsApiCapabilityService
         uint driverType,
         IntPtr software,
         uint flags,
-        [In] uint[] featureLevels,
+        [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 5)] uint[] featureLevels,
         uint featureLevelsCount,
         uint sdkVersion,
         out IntPtr device,
