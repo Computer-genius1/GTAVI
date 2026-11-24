@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 using Microsoft.Win32;
 using GTAVI.Windows.Models;
@@ -67,7 +66,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"The scan could not be completed: {ex.Message}";
+            DiagnosticLogService.Write("Complete system scan", ex);
+            StatusText.Text = "The scan could not be completed. See the local diagnostic log for details.";
         }
         finally
         {
@@ -93,25 +93,18 @@ public partial class MainWindow : Window
 
         try
         {
-            var report = new
-            {
-                application = "GTAVI Windows Readiness",
-                reportGenerated = DateTimeOffset.Now,
-                collectionScope = "Local Windows system information only",
-                diagnostics = _diagnostics
-            };
-
-            var json = JsonSerializer.Serialize(report, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
-
+            var redactIdentifiers = RedactReportCheckBox.IsChecked == true;
+            var json = ReportExportService.Serialize(_diagnostics, redactIdentifiers);
             await File.WriteAllTextAsync(dialog.FileName, json);
-            StatusText.Text = $"Report saved: {Path.GetFileName(dialog.FileName)}";
+            StatusText.Text = redactIdentifiers
+                ? $"Redacted report saved: {Path.GetFileName(dialog.FileName)}"
+                : $"Report saved: {Path.GetFileName(dialog.FileName)}";
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"The report could not be saved.\n\n{ex.Message}",
+            DiagnosticLogService.Write("Export system report", ex);
+            MessageBox.Show(this,
+                $"The report could not be saved. A privacy-conscious error entry was written to the local diagnostic log.",
                 "Export failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
