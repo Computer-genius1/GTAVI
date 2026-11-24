@@ -30,3 +30,20 @@ jobs:
 
       - name: Run tests
         run: dotnet test GTAVI.sln --configuration Release --no-build --verbosity normal
+
+      - name: Publish Windows x64 preview
+        run: dotnet publish src/GTAVI.Windows/GTAVI.Windows.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output artifacts/publish/win-x64
+
+      - name: Package Windows x64 preview
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/packages | Out-Null
+          Compress-Archive -Path artifacts/publish/win-x64/* -DestinationPath artifacts/packages/GTAVI-Windows-Readiness-win-x64.zip -Force
+
+      - name: Upload Windows x64 preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: GTAVI-Windows-Readiness-win-x64
+          path: artifacts/packages/GTAVI-Windows-Readiness-win-x64.zip
+          if-no-files-found: error
+          retention-days: 14
