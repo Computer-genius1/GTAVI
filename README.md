@@ -7,7 +7,7 @@ An independent community software project building Windows 11 system-readiness a
 
 ## Current status
 
-**Status: Early development — Windows diagnostics dashboard, GPU inventory, Direct3D capability checks, and graphics device health reporting implemented.**
+**Status: Early development — Windows diagnostics dashboard, GPU inventory, Direct3D capability checks, graphics device health reporting, and an overall diagnostic status summary implemented.**
 
 The native Windows desktop application can inspect local Windows and hardware information, report graphics adapter and driver details, and export a JSON report.
 
@@ -24,12 +24,13 @@ This is a system information utility, **not a GTA VI compatibility verdict**. No
 - Graphics adapter inventory, including driver version/date, video processor, Windows-reported adapter memory, and current display resolution where available.
 - Direct3D 11 hardware-device detection with the highest reported feature level, plus a Direct3D 12 hardware-device creation check.
 - Graphics device health reporting using Windows Plug and Play status and configuration error codes, with explanations for common errors and explicit handling of missing driver metadata.
+- An overall diagnostic summary with **Healthy**, **Needs Attention**, and **Unable to Verify** outcomes based on the platform assessment, graphics driver state, and Direct3D device checks.
 - System model, manufacturer, BIOS version, DirectX registry version, and fixed-drive capacity reporting.
 - User-initiated JSON report export.
-- Automated tests for platform compatibility, graphics adapter formatting, graphics API capability reporting, and graphics driver health formatting.
+- Automated tests for platform compatibility, graphics adapter formatting, graphics API capability reporting, graphics driver health formatting, and overall diagnostic classification.
 - GitHub Actions workflow to restore, build, and test on Windows.
 
-All collected information is read locally. The app does not upload diagnostic data or collect personal files. GPU memory and driver details depend on what the installed Windows driver exposes through WMI and may be incomplete or rounded. Driver health reflects Windows-reported Plug and Play status; a missing driver version or date is reported as unavailable, not automatically labeled a fault. The app does not decide whether a driver is outdated or attempt to update or repair it. Direct3D checks create devices on the default hardware adapter only; they do not enumerate every adapter, measure performance, or establish game compatibility.
+All collected information is read locally. The app does not upload diagnostic data or collect personal files. GPU memory and driver details depend on what the installed Windows driver exposes through WMI and may be incomplete or rounded. Driver health reflects Windows-reported Plug and Play status; a missing driver version or date is reported as unavailable, not automatically labeled a fault. The app does not decide whether a driver is outdated or attempt to update or repair it. The overall status is a transparent summary of three Windows checks, not a numeric score or a GTA VI compatibility verdict. An experimental or incomplete result is labeled Unable to Verify rather than assumed healthy. Direct3D checks create devices on the default hardware adapter only; they do not enumerate every adapter, measure performance, or establish game compatibility.
 
 ## Platform direction
 
