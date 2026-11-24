@@ -6,4 +6,5 @@ public sealed record GraphicsAdapterInfo(
     string DriverDate,
     string VideoProcessor,
     string AdapterMemory,
-    string DisplayResolution);
+    string DisplayResolution,
+    string AdapterClass = "Not classified");
