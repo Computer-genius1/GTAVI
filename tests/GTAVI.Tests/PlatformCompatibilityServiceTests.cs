@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using GTAVI.Windows.Models;
 using GTAVI.Windows.Services;
+using Xunit;
 
 namespace GTAVI.Tests;
 
