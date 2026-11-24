@@ -37,6 +37,11 @@
                     <TextBlock Text="Hardware overview" FontSize="17" FontWeight="SemiBold"/>
                     <TextBlock x:Name="StatusText" Text="Ready to scan this PC"
                                Foreground="{StaticResource SecondaryText}" Margin="0,5,0,0"/>
+                    <CheckBox x:Name="RedactReportCheckBox"
+                              Content="Redact hardware identifiers in exported reports"
+                              IsChecked="True" Margin="0,9,0,0"
+                              Foreground="{StaticResource SecondaryText}"
+                              FontSize="11" ToolTip="Hides processor, graphics adapter, manufacturer, model, and BIOS identifying strings in the exported JSON report."/>
                 </StackPanel>
                 <Button x:Name="ScanButton" Grid.Column="1" Content="Scan system"
                         Click="ScanButton_Click" Padding="18,11" Margin="12,0"
