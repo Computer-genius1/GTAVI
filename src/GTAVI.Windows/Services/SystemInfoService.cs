@@ -21,9 +21,10 @@ public sealed class SystemInfoService
                 new("Processor", GetWmiValue("SELECT Name FROM Win32_Processor", "Name"),
                     GetProcessorDetails()),
                 new("Installed memory", GetMemory(), "Physical memory reported by Windows."),
-                new("Graphics adapter", GetGraphicsAdapters(), "Detected through Windows Management Instrumentation."),
+                new("Graphics adapters", GetGraphicsAdapters(),
+                    "Driver and display details are reported by Windows WMI. Adapter memory can be limited or rounded by the driver."),
                 new("DirectX", GetRegistryValue(Registry.LocalMachine,
-                    @"SOFTWARE\Microsoft\DirectX", "Version"), "Version reported by the DirectX registry key."),
+                    @"SOFTWARE\Microsoft\DirectX", "Version"), "Version reported by the DirectX registry key; this is not a feature-level test."),
                 new("System manufacturer", GetWmiValue("SELECT Manufacturer FROM Win32_ComputerSystem", "Manufacturer")),
                 new("System model", GetWmiValue("SELECT Model FROM Win32_ComputerSystem", "Model")),
                 new("BIOS version", GetWmiValue("SELECT SMBIOSBIOSVersion FROM Win32_BIOS", "SMBIOSBIOSVersion")),
@@ -79,17 +80,76 @@ public sealed class SystemInfoService
     {
         try
         {
-            using var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController");
-            var names = searcher.Get().Cast<ManagementObject>()
-                .Select(item => item["Name"]?.ToString())
-                .Where(name => !string.IsNullOrWhiteSpace(name))
-                .Distinct()
-                .ToArray();
-            return names.Length == 0 ? "No adapter reported" : string.Join(Environment.NewLine, names!);
+            using var searcher = new ManagementObjectSearcher(
+                "SELECT Name, DriverVersion, DriverDate, VideoProcessor, AdapterRAM, CurrentHorizontalResolution, CurrentVerticalResolution FROM Win32_VideoController");
+            using var results = searcher.Get();
+
+            var adapters = new List<GraphicsAdapterInfo>();
+            foreach (ManagementObject item in results)
+            {
+                try
+                {
+                    var driverDate = FormatWmiDate(item["DriverDate"]?.ToString());
+                    var memory = FormatAdapterMemory(item["AdapterRAM"]);
+                    var width = item["CurrentHorizontalResolution"]?.ToString();
+                    var height = item["CurrentVerticalResolution"]?.ToString();
+                    var resolution = int.TryParse(width, out var w) && int.TryParse(height, out var h)
+                        ? $"{w} x {h}"
+                        : "";
+
+                    adapters.Add(new GraphicsAdapterInfo(
+                        item["Name"]?.ToString() ?? "",
+                        item["DriverVersion"]?.ToString() ?? "",
+                        driverDate,
+                        item["VideoProcessor"]?.ToString() ?? "",
+                        memory,
+                        resolution));
+                }
+                finally
+                {
+                    item.Dispose();
+                }
+            }
+
+            return GraphicsAdapterFormatter.Format(adapters);
         }
         catch
         {
-            return "Unavailable";
+            return "Graphics adapter details are unavailable through Windows WMI.";
+        }
+    }
+
+    private static string FormatWmiDate(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "";
+
+        try
+        {
+            return ManagementDateTimeConverter.ToDateTime(value).ToString("yyyy-MM-dd");
+        }
+        catch
+        {
+            return "";
+        }
+    }
+
+    private static string FormatAdapterMemory(object? value)
+    {
+        try
+        {
+            if (value is null)
+                return "";
+
+            var bytes = Convert.ToUInt64(value);
+            if (bytes == 0)
+                return "";
+
+            return $"{bytes / 1024d / 1024d / 1024d:0.0} GB";
+        }
+        catch
+        {
+            return "";
         }
     }
 
