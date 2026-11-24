@@ -1,51 +1,74 @@
 # Architecture
 
-## Current state
+## Current implementation
 
-This document describes a proposed architecture. No application implementation exists yet.
+The repository contains a Windows Presentation Foundation (WPF) desktop application written in C# and targeting .NET 8 for Windows.
+
+The application is divided into:
+- **UI:** WPF dashboard and user-initiated scan/export actions.
+- **Models:** Small immutable diagnostic and platform-assessment data models.
+- **Services:** Read-only Windows and hardware inventory, plus platform support assessment.
+- **Tests:** Unit tests for Windows build and CPU architecture policy.
+- **CI:** A Windows GitHub Actions workflow that restores, builds, and runs tests.
+
+The current app is a system-readiness utility. It does not launch, modify, emulate, or provide access to GTA VI.
 
 ## Design principles
 
-- Target Windows 11 only; do not add Windows 10 compatibility paths.
+- Target Windows 11 build 22000 or later; do not add Windows 10 compatibility paths.
+- x64 is the primary development architecture. ARM64 is explicitly experimental.
 - Keep the Windows-side application separate from proprietary game code and assets.
-- Use only documented, supported Windows APIs and lawfully obtained dependencies.
+- Use documented Windows APIs and lawfully obtained dependencies.
 - Do not circumvent DRM, anti-cheat, platform security, or other access controls.
 - Keep diagnostics transparent and privacy-conscious; collect no telemetry by default.
-- Make architecture-specific behavior explicit rather than assuming x64 and ARM64 are interchangeable.
+- Clearly distinguish verified platform facts from unknown game requirements.
 
-## Proposed components
+## Implemented components
 
-### 1. Windows application shell
+### 1. Windows application
 
-A small native Windows application may eventually provide:
-- System and build information.
-- Compatibility and prerequisite checks.
-- User-configurable settings.
-- Local diagnostic logs and export controls.
-- Links to official sources and support documentation.
+The WPF application currently provides:
+- A dark, scrollable diagnostics dashboard.
+- A Windows 11 platform gate and architecture status.
+- A user-initiated hardware and operating-system scan.
+- A user-initiated JSON report export.
 
-### 2. Compatibility assessment
+### 2. System inventory
 
-The assessment layer should report, without modifying the system:
-- Windows edition, version, and build.
-- Process and operating-system architecture.
-- CPU feature availability.
-- Installed memory and available storage.
-- GPU identity, driver version, and supported graphics capabilities.
+The inventory service reads:
+- Windows product name, display version, and build.
+- Operating-system and process architecture.
+- CPU name, core count, and logical processor count.
+- Installed physical memory.
+- Graphics adapter names.
+- System manufacturer and model.
+- BIOS version.
+- DirectX registry version.
+- Ready local fixed-drive capacity and free space.
 
-Checks must distinguish verified requirements from advisory recommendations. Do not invent GTA VI requirements before an authorized PC build publishes them.
+WMI and registry failures are handled as unavailable values where possible. The scan does not require administrator privileges by design, and results may be incomplete on systems where Windows restricts inventory access.
 
-### 3. Authorized game integration
+### 3. Platform assessment
 
-This layer is deliberately unimplemented. It can be designed only after lawful access to an official PC build and any required authorization. It must not include copied game assets, proprietary code, DRM circumvention, or unofficial executable modifications.
+The current policy is intentionally narrow:
+- Windows builds below 22000 are unsupported.
+- Windows 11 x64 is the primary supported development target.
+- Windows 11 ARM64 is marked experimental.
+- Other architectures are unsupported.
 
-### 4. Diagnostics
+This is an application platform policy, not a statement about GTA VI compatibility or requirements.
 
-- Store logs locally by default.
-- Avoid collecting personal files, account credentials, or unrelated system data.
-- Let users inspect and explicitly export diagnostic reports.
-- Redact sensitive values from reports where practical.
+### 4. Automated tests
 
-## Technology selection
+The test project covers the Windows build threshold and architecture classification. More tests are needed for WMI failures, report serialization, and UI behavior.
 
-The implementation framework has not yet been locked. Before choosing it, compare supported Windows 11 desktop frameworks, packaging, accessibility, update mechanisms, and x64/ARM64 support. Record the decision and rationale here before introducing a large dependency stack.
+## Privacy and diagnostics
+
+- Information is collected locally after the user selects Scan system.
+- Reports are written only when the user selects Export report and chooses a destination.
+- No telemetry or automatic upload is implemented.
+- Reports should not include personal files, account credentials, or unrelated system data.
+
+## Future authorized game integration
+
+This layer is deliberately unimplemented. It can be investigated only after lawful access to an official PC build and any required authorization. It must not include copied game assets, proprietary code, DRM circumvention, or unofficial executable modifications.
