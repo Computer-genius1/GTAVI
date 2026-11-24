@@ -42,7 +42,7 @@ The assessment service classifies platform policy, graphics driver health, and D
 
 ## Report privacy and local logging
 
-The JSON report exporter supports hardware-identifier redaction. The UI enables it by default. When enabled, processor, graphics adapter, system manufacturer, system model, and BIOS identifying strings are replaced with a redaction marker while other diagnostic values remain. Users can explicitly turn redaction off before exporting and should review reports before sharing them.
+The JSON report exporter supports hardware-identifier redaction. The UI enables it by default. When enabled, processor, graphics adapter, graphics-driver adapter names, system manufacturer, system model, and BIOS identifying strings are replaced with a redaction marker while other diagnostic values remain. Users can explicitly turn redaction off before exporting and should review reports before sharing them.
 
 Local logs are written to %LOCALAPPDATA%\GTAVI\Logs\diagnostics.log. Entries contain timestamp, sanitized operation label, and exception type only. They omit raw hardware values, report contents, file paths, and exception messages. The log rotates at a bounded size. Logging failures do not interrupt scanning or exporting. Logs are not uploaded.
 
