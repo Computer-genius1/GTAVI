@@ -86,7 +86,11 @@ public sealed class SystemInfoService
             var modules = results.Cast<ManagementObject>().ToArray();
             try
             {
-                var total = modules.Aggregate(0UL, (sum, module) =>\n                {\n                    var capacity = TryUInt64(module["Capacity"]);\n                    return ulong.MaxValue - sum < capacity ? ulong.MaxValue : sum + capacity;\n                });
+                var total = modules.Aggregate(0UL, (sum, module) =>
+                {
+                    var capacity = TryUInt64(module["Capacity"]);
+                    return ulong.MaxValue - sum < capacity ? ulong.MaxValue : sum + capacity;
+                });
                 var speeds = modules.Select(module => module["Speed"]?.ToString())
                     .Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().ToArray();
                 var speedText = speeds.Length == 0 ? "speed unavailable" : $"reported speed: {string.Join(", ", speeds)} MHz";
