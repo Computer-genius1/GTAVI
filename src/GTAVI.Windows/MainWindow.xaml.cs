@@ -11,12 +11,29 @@ namespace GTAVI.Windows;
 public partial class MainWindow : Window
 {
     private readonly SystemInfoService _systemInfoService = new();
+    private readonly PlatformCompatibilityService _platformService = new();
     private readonly ObservableCollection<DiagnosticItem> _diagnostics = new();
 
     public MainWindow()
     {
         InitializeComponent();
+
+        var platform = _platformService.AssessCurrentSystem();
+        if (platform.Level == PlatformSupportLevel.Unsupported)
+        {
+            MessageBox.Show(
+                $"{platform.Summary}\n\n{platform.Details}",
+                "Unsupported platform",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            Application.Current.Shutdown();
+            return;
+        }
+
         DiagnosticsList.ItemsSource = _diagnostics;
+        StatusText.Text = platform.Level == PlatformSupportLevel.Experimental
+            ? $"Ready • {platform.Summary} (experimental)"
+            : $"Ready • {platform.Summary}";
     }
 
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
@@ -27,7 +44,13 @@ public partial class MainWindow : Window
 
         try
         {
-            var results = await _systemInfoService.CollectAsync();
+            var results = (await _systemInfoService.CollectAsync()).ToList();
+            var platform = _platformService.AssessCurrentSystem();
+            results.Insert(0, new DiagnosticItem(
+                "Platform assessment",
+                platform.Summary,
+                platform.Details));
+
             _diagnostics.Clear();
             foreach (var item in results)
                 _diagnostics.Add(item);
