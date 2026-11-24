@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-test:
     runs-on: windows-latest
     steps:
       - name: Check out source
@@ -27,3 +27,6 @@ jobs:
 
       - name: Build
         run: dotnet build GTAVI.sln --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test GTAVI.sln --configuration Release --no-build --verbosity normal
