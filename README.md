@@ -7,7 +7,7 @@ An independent community software project building Windows 11 system-readiness a
 
 ## Current status
 
-**Status: Early development — Windows diagnostics dashboard and GPU inventory implemented.**
+**Status: Early development — Windows diagnostics dashboard, GPU inventory, and Direct3D capability checks implemented.**
 
 The native Windows desktop application can inspect local Windows and hardware information, report graphics adapter and driver details, and export a JSON report.
 
@@ -22,12 +22,13 @@ This is a system information utility, **not a GTA VI compatibility verdict**. No
 - OS architecture detection: x64 supported for primary development; ARM64 marked experimental.
 - CPU model, core/thread count, and installed physical memory reporting.
 - Graphics adapter inventory, including driver version/date, video processor, Windows-reported adapter memory, and current display resolution where available.
+- Direct3D 11 hardware-device detection with the highest reported feature level, plus a Direct3D 12 hardware-device creation check.
 - System model, manufacturer, BIOS version, DirectX registry version, and fixed-drive capacity reporting.
 - User-initiated JSON report export.
-- Automated tests for platform compatibility and graphics adapter report formatting.
+- Automated tests for platform compatibility, graphics adapter formatting, and graphics API capability report formatting.
 - GitHub Actions workflow to restore, build, and test on Windows.
 
-All collected information is read locally. The app does not upload diagnostic data or collect personal files. GPU memory and driver details depend on what the installed Windows driver exposes through WMI and may be incomplete or rounded.
+All collected information is read locally. The app does not upload diagnostic data or collect personal files. GPU memory and driver details depend on what the installed Windows driver exposes through WMI and may be incomplete or rounded. Direct3D checks create devices on the default hardware adapter only; they do not enumerate every adapter, measure performance, or establish game compatibility.
 
 ## Platform direction
 
@@ -85,12 +86,11 @@ GTAVI/
 
 ## Planned next steps
 
-1. Add reliable graphics API capability detection using documented Windows APIs.
-2. Improve diagnostic error categorization and WMI fallback behavior.
-3. Add tests for report generation and inventory edge cases.
-4. Add structured local logging and report redaction controls.
-5. Improve accessibility, interface scaling, and packaging.
-6. Research any future game integration only if authorized PC game components and required permissions become available.
+1. Improve diagnostic error categorization and WMI fallback behavior.
+2. Add tests for report generation and inventory edge cases.
+3. Add structured local logging and report redaction controls.
+4. Improve accessibility, interface scaling, and packaging.
+5. Research any future game integration only if authorized PC game components and required permissions become available.
 
 ## Contributing
 
