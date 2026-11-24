@@ -23,6 +23,8 @@ This roadmap tracks the independent Windows utility. Game-specific integration i
 - [x] Add unit tests for graphics adapter report formatting.
 - [x] Add Direct3D 11 feature-level detection and Direct3D 12 device-creation capability checks using documented Windows APIs.
 - [x] Add graphics device health reporting with Windows Plug and Play configuration error explanations.
+- [x] Add an overall diagnostic status summary with Healthy, Needs Attention, and Unable to Verify classifications.
+- [x] Add unit tests for diagnostic status aggregation and precedence.
 - [ ] Improve WMI fallback behavior for broader system inventory failures.
 - [ ] Add unit tests for report serialization and inventory edge cases.
 - [ ] Add structured local logging and optional report redaction.
