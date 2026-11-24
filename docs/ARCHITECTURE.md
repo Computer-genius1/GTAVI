@@ -58,7 +58,11 @@ The scan attempts to create a Direct3D 11 hardware device and records the highes
 
 The health check reads Windows-reported Plug and Play state from `Win32_VideoController`. It distinguishes a reported healthy configuration code, a known device error code, and an unknown/unavailable code. Common Windows configuration errors are explained in the report; unrecognized codes are preserved for troubleshooting in Device Manager. Driver version and date are displayed when Windows reports them, but missing metadata is not treated as proof of a broken or outdated driver. The utility does not compare versions against vendor releases, install drivers, or attempt repairs. WMI access failures are surfaced as a collection-status note.
 
-### 5. Platform assessment
+### 5. Overall diagnostic assessment
+
+After the system scan, a pure, testable assessment service classifies three checks: platform policy, graphics driver health, and Direct3D 11/12 device creation. Each check is marked **Healthy**, **Needs Attention**, or **Unable to Verify**. A reported unsupported platform, Windows device error, or unavailable Direct3D device check needs attention. Experimental platforms and missing or ambiguous data remain unverified. Needs Attention takes precedence in the overall result; otherwise an unverified check prevents an overall Healthy result. The summary includes per-status counts and is included in the user-exported JSON report. It is not a weighted score, benchmark, or GTA VI compatibility verdict.
+
+### 6. Platform assessment
 
 The current policy is intentionally narrow:
 - Windows builds below 22000 are unsupported.
@@ -68,9 +72,9 @@ The current policy is intentionally narrow:
 
 This is an application platform policy, not a statement about GTA VI compatibility or requirements.
 
-### 6. Automated tests
+### 7. Automated tests
 
-The test project covers the Windows build threshold and architecture classification. More tests are needed for WMI failures, report serialization, and UI behavior.
+The test project covers the Windows build threshold, architecture classification, graphics formatting, driver-health formatting, and diagnostic status classification. More tests are needed for WMI failures, report serialization, and UI behavior.
 
 ## Privacy and diagnostics
 
