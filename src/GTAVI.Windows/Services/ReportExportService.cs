@@ -18,6 +18,7 @@ public static class ReportExportService
     {
         "Processor",
         "Graphics adapters",
+        "Graphics driver health",
         "System manufacturer",
         "System model",
         "BIOS version"
