@@ -19,10 +19,11 @@ This roadmap tracks the independent Windows utility. Game-specific integration i
 - [ ] Validate a clean build and test run through GitHub Actions.
 
 ## Phase 2 — Diagnostics improvements
-- [ ] Improve GPU inventory with driver version and display-device details.
-- [ ] Add graphics API capability reporting where supported by documented Windows APIs.
+- [x] Report GPU names, driver versions and dates, video processor, reported adapter memory, and current display resolution where available.
+- [x] Add unit tests for graphics adapter report formatting.
+- [ ] Add graphics API capability reporting using documented Windows APIs.
 - [ ] Add diagnostic error categorization and more resilient WMI fallback behavior.
-- [ ] Add unit tests for report generation and inventory edge cases.
+- [ ] Add unit tests for report serialization and inventory edge cases.
 - [ ] Add structured local logging and optional report redaction.
 - [ ] Improve accessibility, interface scaling, and keyboard navigation.
 
