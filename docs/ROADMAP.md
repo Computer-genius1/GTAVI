@@ -16,7 +16,7 @@ This roadmap tracks the independent Windows utility. Game-specific integration i
 - [x] Add read-only system diagnostics.
 - [x] Add automated tests for platform compatibility rules.
 - [x] Add user-initiated JSON report export.
-- [ ] Validate a clean build and test run through GitHub Actions.
+- [x] Validate a clean build and test run through GitHub Actions.
 
 ## Phase 2 — Diagnostics improvements
 - [x] Report GPU names, driver versions and dates, video processor, reported adapter memory, and current display resolution where available.
