@@ -1,5 +1,6 @@
 using GTAVI.Windows.Models;
 using GTAVI.Windows.Services;
+using Xunit;
 
 namespace GTAVI.Tests;
 
