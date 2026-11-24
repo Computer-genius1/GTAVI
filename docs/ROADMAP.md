@@ -22,7 +22,8 @@ This roadmap tracks the independent Windows utility. Game-specific integration i
 - [x] Report GPU names, driver versions and dates, video processor, reported adapter memory, and current display resolution where available.
 - [x] Add unit tests for graphics adapter report formatting.
 - [x] Add Direct3D 11 feature-level detection and Direct3D 12 device-creation capability checks using documented Windows APIs.
-- [ ] Add diagnostic error categorization and more resilient WMI fallback behavior.
+- [x] Add graphics device health reporting with Windows Plug and Play configuration error explanations.
+- [ ] Improve WMI fallback behavior for broader system inventory failures.
 - [ ] Add unit tests for report serialization and inventory edge cases.
 - [ ] Add structured local logging and optional report redaction.
 - [ ] Improve accessibility, interface scaling, and keyboard navigation.
