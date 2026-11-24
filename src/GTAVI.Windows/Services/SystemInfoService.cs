@@ -14,6 +14,7 @@ public sealed class SystemInfoService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var graphics = CollectGraphicsAdapters();
             var items = new List<DiagnosticItem>
             {
                 new("Operating system", GetWindowsName(), "Detected from the Windows registry."),
@@ -21,9 +22,13 @@ public sealed class SystemInfoService
                     $"Process architecture: {RuntimeInformation.ProcessArchitecture}"),
                 new("Processor", GetWmiValue("SELECT Name FROM Win32_Processor", "Name"),
                     GetProcessorDetails()),
-                new("Installed memory", GetMemory(), "Physical memory reported by Windows."),
-                new("Graphics adapters", GetGraphicsAdapters(),
-                    "Driver and display details are reported by Windows WMI. Adapter memory can be limited or rounded by the driver."),
+                new("Installed memory", GetMemory(), GetMemoryDetails()),
+                new("Graphics adapter count", graphics.Count.ToString(),
+                    graphics.Count > 1
+                        ? "Multiple adapters are visible to Windows. This inventory does not assume which GPU a game would select."
+                        : "Count of display adapters returned by Windows WMI."),
+                new("Graphics adapters", GraphicsAdapterFormatter.Format(graphics),
+                    "Adapter vendors are identified where possible. Windows WMI alone does not reliably establish whether a GPU is integrated or dedicated; no role is guessed. Adapter memory can be capped or rounded by drivers."),
                 new("Graphics driver health",
                     GraphicsDriverHealthFormatter.Format(new GraphicsDriverHealthService().Collect()),
                     "Uses Windows Plug and Play status codes and reported driver metadata. Missing driver fields are flagged as unreported, not automatically treated as a fault; no driver updates or repairs are performed."),
@@ -31,11 +36,11 @@ public sealed class SystemInfoService
                     @"SOFTWARE\Microsoft\DirectX", "Version"), "Version reported by the DirectX registry key; this is not a feature-level test."),
                 new("Graphics API capabilities",
                     GraphicsApiCapabilityFormatter.Format(new GraphicsApiCapabilityService().Detect()),
-                    "Tests Direct3D 11 and 12 device creation on the default hardware adapter. This is not a game compatibility or performance test."),
+                    "Tests Direct3D 11 and 12 device creation on the default hardware adapter only. It does not test every listed GPU or establish game compatibility."),
                 new("System manufacturer", GetWmiValue("SELECT Manufacturer FROM Win32_ComputerSystem", "Manufacturer")),
                 new("System model", GetWmiValue("SELECT Model FROM Win32_ComputerSystem", "Model")),
                 new("BIOS version", GetWmiValue("SELECT SMBIOSBIOSVersion FROM Win32_BIOS", "SMBIOSBIOSVersion")),
-                new("Available drives", GetDriveSummary(), "Local fixed disks; free space is informational.")
+                new("Available storage", GetDriveSummary(), "Ready local fixed volumes, total capacity, and available free space.")
             };
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -56,23 +61,46 @@ public sealed class SystemInfoService
             var buildText = string.IsNullOrWhiteSpace(build) ? "" : $" (build {build}{(string.IsNullOrWhiteSpace(ubr) ? "" : "." + ubr)})";
             return $"{product}{(string.IsNullOrWhiteSpace(display) ? "" : " " + display)}{buildText}";
         }
-        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException)
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
         {
-            return "Access denied";
+            DiagnosticLogService.Write("Read Windows version", ex);
+            return "Access denied or unavailable";
         }
     }
 
     private static string GetMemory()
     {
+        var raw = GetWmiRawValue("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem", "TotalPhysicalMemory");
+        if (ulong.TryParse(raw, out var bytes) && bytes > 0)
+            return $"{bytes / 1024d / 1024d / 1024d:0.0} GB";
+        return "Unavailable";
+    }
+
+    private static string GetMemoryDetails()
+    {
         try
         {
-            var bytes = Convert.ToUInt64(GetWmiRawValue(
-                "SELECT TotalPhysicalMemory FROM Win32_ComputerSystem", "TotalPhysicalMemory"));
-            return $"{bytes / 1024d / 1024d / 1024d:0.0} GB";
+            using var searcher = new ManagementObjectSearcher(
+                "SELECT Capacity, Speed, Manufacturer, PartNumber FROM Win32_PhysicalMemory");
+            using var results = searcher.Get();
+            var modules = results.Cast<ManagementObject>().ToArray();
+            try
+            {
+                var total = modules.Sum(module => TryUInt64(module["Capacity"]));
+                var speeds = modules.Select(module => module["Speed"]?.ToString())
+                    .Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().ToArray();
+                var speedText = speeds.Length == 0 ? "speed unavailable" : $"reported speed: {string.Join(", ", speeds)} MHz";
+                return $"Modules detected: {modules.Length}; module capacity total: {total / 1024d / 1024d / 1024d:0.0} GB; {speedText}.";
+            }
+            finally
+            {
+                foreach (var module in modules) module.Dispose();
+            }
         }
-        catch
+        catch (Exception ex) when (ex is ManagementException or UnauthorizedAccessException or System.Security.SecurityException or InvalidOperationException)
         {
-            return "Unavailable";
+            DiagnosticLogService.Write("Read memory module details", ex);
+            return "Memory module details unavailable; total physical memory is reported separately.";
         }
     }
 
@@ -80,18 +108,21 @@ public sealed class SystemInfoService
     {
         var cores = GetWmiValue("SELECT NumberOfCores FROM Win32_Processor", "NumberOfCores");
         var threads = GetWmiValue("SELECT NumberOfLogicalProcessors FROM Win32_Processor", "NumberOfLogicalProcessors");
-        return $"Cores: {cores}; logical processors: {threads}";
+        var sockets = GetWmiCount("SELECT DeviceID FROM Win32_Processor");
+        var maxClock = GetWmiValue("SELECT MaxClockSpeed FROM Win32_Processor", "MaxClockSpeed");
+        var clockText = int.TryParse(maxClock, out var mhz) && mhz > 0 ? $"{mhz} MHz reported maximum" : "maximum clock unavailable";
+        return $"Sockets: {sockets}; cores: {cores}; logical processors: {threads}; {clockText}.";
     }
 
-    private static string GetGraphicsAdapters()
+    private static List<GraphicsAdapterInfo> CollectGraphicsAdapters()
     {
+        var adapters = new List<GraphicsAdapterInfo>();
         try
         {
             using var searcher = new ManagementObjectSearcher(
-                "SELECT Name, DriverVersion, DriverDate, VideoProcessor, AdapterRAM, CurrentHorizontalResolution, CurrentVerticalResolution FROM Win32_VideoController");
+                "SELECT Name, DriverVersion, DriverDate, VideoProcessor, AdapterRAM, CurrentHorizontalResolution, CurrentVerticalResolution, PNPDeviceID FROM Win32_VideoController");
             using var results = searcher.Get();
 
-            var adapters = new List<GraphicsAdapterInfo>();
             foreach (ManagementObject item in results)
             {
                 try
@@ -103,76 +134,113 @@ public sealed class SystemInfoService
                     var resolution = int.TryParse(width, out var w) && int.TryParse(height, out var h)
                         ? $"{w} x {h}"
                         : "";
+                    var name = item["Name"]?.ToString() ?? "";
+                    var pnpId = item["PNPDeviceID"]?.ToString() ?? "";
 
                     adapters.Add(new GraphicsAdapterInfo(
-                        item["Name"]?.ToString() ?? "",
+                        name,
                         item["DriverVersion"]?.ToString() ?? "",
                         driverDate,
                         item["VideoProcessor"]?.ToString() ?? "",
                         memory,
-                        resolution));
+                        resolution,
+                        ClassifyAdapter(name, pnpId)));
                 }
                 finally
                 {
                     item.Dispose();
                 }
             }
-
-            return GraphicsAdapterFormatter.Format(adapters);
         }
-        catch
+        catch (Exception ex) when (ex is ManagementException or UnauthorizedAccessException or System.Security.SecurityException or InvalidOperationException or System.Runtime.InteropServices.COMException)
         {
-            return "Graphics adapter details are unavailable through Windows WMI.";
+            DiagnosticLogService.Write("Enumerate graphics adapters", ex);
         }
+
+        return adapters;
+    }
+
+    private static string ClassifyAdapter(string name, string pnpId)
+    {
+        var vendor = pnpId.Contains("VEN_8086", StringComparison.OrdinalIgnoreCase) ||
+                     name.Contains("Intel", StringComparison.OrdinalIgnoreCase) ? "Intel" :
+                     pnpId.Contains("VEN_10DE", StringComparison.OrdinalIgnoreCase) ||
+                     name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ? "NVIDIA" :
+                     pnpId.Contains("VEN_1002", StringComparison.OrdinalIgnoreCase) ||
+                     name.Contains("AMD", StringComparison.OrdinalIgnoreCase) ||
+                     name.Contains("Radeon", StringComparison.OrdinalIgnoreCase) ? "AMD" : "";
+
+        return string.IsNullOrEmpty(vendor)
+            ? "Vendor not identified; GPU role not verified"
+            : $"{vendor} GPU; integrated/discrete role not verified";
     }
 
     private static string FormatWmiDate(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        try
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        try { return ManagementDateTimeConverter.ToDateTime(value).ToString("yyyy-MM-dd"); }
+        catch (Exception ex) when (ex is FormatException or ArgumentOutOfRangeException)
         {
-            return ManagementDateTimeConverter.ToDateTime(value).ToString("yyyy-MM-dd");
-        }
-        catch
-        {
+            DiagnosticLogService.Write("Parse graphics driver date", ex);
             return "";
         }
     }
 
     private static string FormatAdapterMemory(object? value)
     {
-        try
-        {
-            if (value is null)
-                return "";
+        var bytes = TryUInt64(value);
+        return bytes == 0 ? "" : $"{bytes / 1024d / 1024d / 1024d:0.0} GB";
+    }
 
-            var bytes = Convert.ToUInt64(value);
-            if (bytes == 0)
-                return "";
-
-            return $"{bytes / 1024d / 1024d / 1024d:0.0} GB";
-        }
-        catch
+    private static ulong TryUInt64(object? value)
+    {
+        try { return value is null ? 0 : Convert.ToUInt64(value); }
+        catch (Exception ex) when (ex is FormatException or InvalidCastException or OverflowException)
         {
-            return "";
+            return 0;
         }
     }
 
     private static string GetDriveSummary()
     {
+        var entries = new List<string>();
         try
         {
-            var drives = DriveInfo.GetDrives()
-                .Where(drive => drive.IsReady && drive.DriveType == DriveType.Fixed)
-                .Select(drive => $"{drive.Name.TrimEnd('\\')} — {drive.TotalSize / 1024d / 1024d / 1024d:0} GB total, {drive.AvailableFreeSpace / 1024d / 1024d / 1024d:0} GB free")
-                .ToArray();
-            return drives.Length == 0 ? "No ready fixed drives found" : string.Join(Environment.NewLine, drives);
+            foreach (var drive in DriveInfo.GetDrives())
+            {
+                try
+                {
+                    if (!drive.IsReady || drive.DriveType != DriveType.Fixed) continue;
+                    entries.Add($"{drive.Name.TrimEnd('\\')} — {drive.TotalSize / 1024d / 1024d / 1024d:0} GB total, {drive.AvailableFreeSpace / 1024d / 1024d / 1024d:0} GB free");
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+                {
+                    DiagnosticLogService.Write("Read fixed drive capacity", ex);
+                    entries.Add($"{drive.Name} — capacity unavailable");
+                }
+            }
         }
-        catch
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
         {
-            return "Unavailable";
+            DiagnosticLogService.Write("Enumerate fixed drives", ex);
+            return "Storage inventory unavailable";
+        }
+
+        return entries.Count == 0 ? "No ready fixed drives found" : string.Join(Environment.NewLine, entries);
+    }
+
+    private static int GetWmiCount(string query)
+    {
+        try
+        {
+            using var searcher = new ManagementObjectSearcher(query);
+            using var results = searcher.Get();
+            return results.Count;
+        }
+        catch (Exception ex) when (ex is ManagementException or UnauthorizedAccessException or System.Security.SecurityException or InvalidOperationException)
+        {
+            DiagnosticLogService.Write("Count processor sockets", ex);
+            return 0;
         }
     }
 
@@ -188,11 +256,16 @@ public sealed class SystemInfoService
         {
             using var searcher = new ManagementObjectSearcher(query);
             using var results = searcher.Get();
-            var first = results.Cast<ManagementObject>().FirstOrDefault();
-            return first?[property]?.ToString() ?? "";
+            foreach (ManagementObject item in results)
+            {
+                using (item)
+                    return item[property]?.ToString() ?? "";
+            }
+            return "";
         }
-        catch
+        catch (Exception ex) when (ex is ManagementException or UnauthorizedAccessException or System.Security.SecurityException or InvalidOperationException or System.Runtime.InteropServices.COMException)
         {
+            DiagnosticLogService.Write("Read Windows hardware inventory", ex);
             return "";
         }
     }
@@ -204,8 +277,9 @@ public sealed class SystemInfoService
             using var key = root.OpenSubKey(path);
             return key?.GetValue(name)?.ToString() ?? "Unavailable";
         }
-        catch
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
         {
+            DiagnosticLogService.Write("Read DirectX registry value", ex);
             return "Unavailable";
         }
     }
