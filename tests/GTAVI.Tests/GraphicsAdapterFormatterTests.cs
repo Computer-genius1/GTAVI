@@ -64,7 +64,7 @@ public sealed class GraphicsAdapterFormatterTests
         Assert.Contains("Video processor: Unavailable", report);
         Assert.Contains("Adapter memory reported by Windows: Unavailable", report);
         Assert.Contains("Current display mode: Unavailable", report);
-        Assert.Contains("Adapter class: Unavailable", report);
+        Assert.Contains("Adapter class: Not classified", report);
     }
 
     [Fact]
