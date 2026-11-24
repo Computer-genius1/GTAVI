@@ -42,6 +42,7 @@ The inventory service reads:
 - CPU name, core count, and logical processor count.
 - Installed physical memory.
 - Graphics adapter names, driver version and date, video processor, Windows-reported adapter memory, and current display resolution where WMI provides them.
+- Windows Plug and Play `Status` and `ConfigManagerErrorCode` values for each display adapter, with common device errors translated into readable explanations.
 - System manufacturer and model.
 - BIOS version.
 - DirectX registry version (informational only; it does not establish supported Direct3D feature levels).
@@ -53,7 +54,11 @@ WMI and registry failures are handled as unavailable values where possible. The 
 
 The scan attempts to create a Direct3D 11 hardware device and records the highest feature level returned by the runtime. It separately calls `D3D12CreateDevice` to check whether a Direct3D 12 device can be created at feature level 11_0 or higher. These probes use the default hardware adapter selected by Windows; they do not enumerate every adapter, test optional DirectX 12 features, benchmark performance, or establish compatibility with any game. Remote sessions, virtual adapters, driver state, or system policy can affect the result. The DirectX registry version remains informational and is not used as a substitute for these API checks.
 
-### 4. Platform assessment
+### 4. Graphics driver health
+
+The health check reads Windows-reported Plug and Play state from `Win32_VideoController`. It distinguishes a reported healthy configuration code, a known device error code, and an unknown/unavailable code. Common Windows configuration errors are explained in the report; unrecognized codes are preserved for troubleshooting in Device Manager. Driver version and date are displayed when Windows reports them, but missing metadata is not treated as proof of a broken or outdated driver. The utility does not compare versions against vendor releases, install drivers, or attempt repairs. WMI access failures are surfaced as a collection-status note.
+
+### 5. Platform assessment
 
 The current policy is intentionally narrow:
 - Windows builds below 22000 are unsupported.
@@ -63,7 +68,7 @@ The current policy is intentionally narrow:
 
 This is an application platform policy, not a statement about GTA VI compatibility or requirements.
 
-### 5. Automated tests
+### 6. Automated tests
 
 The test project covers the Windows build threshold and architecture classification. More tests are needed for WMI failures, report serialization, and UI behavior.
 
