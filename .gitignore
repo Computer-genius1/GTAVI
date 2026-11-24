@@ -1,0 +1,45 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+out/
+artifacts/
+publish/
+
+# Visual Studio / IDE
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET
+*.dll
+*.exe
+*.pdb
+*.cache
+project.lock.json
+
+# Packaging
+*.msix
+*.appx
+*.appxbundle
+*.msixbundle
+
+# Logs and local diagnostics
+*.log
+logs/
+diagnostics/
+
+# OS noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
