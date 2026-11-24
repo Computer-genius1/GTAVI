@@ -7,9 +7,9 @@ An independent community software project building Windows 11 system-readiness a
 
 ## Current status
 
-**Status: Early development — first Windows diagnostics build implemented.**
+**Status: Early development — Windows diagnostics dashboard and GPU inventory implemented.**
 
-The repository now contains a native Windows desktop application foundation. The first development build can inspect local Windows and hardware information and export a JSON report.
+The native Windows desktop application can inspect local Windows and hardware information, report graphics adapter and driver details, and export a JSON report.
 
 This is a system information utility, **not a GTA VI compatibility verdict**. No official PC system requirements are assumed or invented. There is no playable game, launcher, game compatibility layer, or performance patch.
 
@@ -20,12 +20,14 @@ This is a system information utility, **not a GTA VI compatibility verdict**. No
 - Windows edition, display version, and build detection.
 - Windows 11 build gate (build 22000 or later).
 - OS architecture detection: x64 supported for primary development; ARM64 marked experimental.
-- CPU model, core/thread count, installed memory, graphics adapter, system model, manufacturer, BIOS version, DirectX registry version, and fixed-drive capacity reporting.
+- CPU model, core/thread count, and installed physical memory reporting.
+- Graphics adapter inventory, including driver version/date, video processor, Windows-reported adapter memory, and current display resolution where available.
+- System model, manufacturer, BIOS version, DirectX registry version, and fixed-drive capacity reporting.
 - User-initiated JSON report export.
-- Automated tests for Windows build and architecture assessment.
+- Automated tests for platform compatibility and graphics adapter report formatting.
 - GitHub Actions workflow to restore, build, and test on Windows.
 
-All collected information is read locally. The app does not upload diagnostic data or collect personal files.
+All collected information is read locally. The app does not upload diagnostic data or collect personal files. GPU memory and driver details depend on what the installed Windows driver exposes through WMI and may be incomplete or rounded.
 
 ## Platform direction
 
@@ -83,9 +85,9 @@ GTAVI/
 
 ## Planned next steps
 
-1. Improve hardware inventory accuracy and add graceful handling for missing or restricted WMI data.
-2. Add GPU driver and graphics API capability reporting without presenting unverified game requirements.
-3. Add unit tests for report generation and diagnostic edge cases.
+1. Add reliable graphics API capability detection using documented Windows APIs.
+2. Improve diagnostic error categorization and WMI fallback behavior.
+3. Add tests for report generation and inventory edge cases.
 4. Add structured local logging and report redaction controls.
 5. Improve accessibility, interface scaling, and packaging.
 6. Research any future game integration only if authorized PC game components and required permissions become available.
