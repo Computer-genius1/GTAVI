@@ -44,11 +44,13 @@ public sealed class DiagnosticAssessmentService
         if (item is null)
             return DiagnosticHealthStatus.UnableToVerify;
 
-        if (item.Value.Contains("Unsupported", StringComparison.OrdinalIgnoreCase) ||
-            item.Value.Contains("required", StringComparison.OrdinalIgnoreCase))
+        var platformText = $"{item.Value} {item.Detail}";
+
+        if (platformText.Contains("Unsupported", StringComparison.OrdinalIgnoreCase) ||
+            platformText.Contains("required", StringComparison.OrdinalIgnoreCase))
             return DiagnosticHealthStatus.NeedsAttention;
 
-        if (item.Value.Contains("experimental", StringComparison.OrdinalIgnoreCase))
+        if (platformText.Contains("experimental", StringComparison.OrdinalIgnoreCase))
             return DiagnosticHealthStatus.UnableToVerify;
 
         if (item.Value.Contains("Windows 11 x64", StringComparison.OrdinalIgnoreCase))
