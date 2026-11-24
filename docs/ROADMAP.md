@@ -30,17 +30,32 @@ This roadmap tracks the independent Windows utility. Game-specific integration i
 - [ ] Add structured local logging and optional report redaction.
 - [ ] Improve accessibility, interface scaling, and keyboard navigation.
 
-## Phase 3 — Packaging and release engineering
-- [ ] Choose a signed installer or MSIX packaging approach.
-- [ ] Define versioning and release channels.
-- [ ] Add artifact publishing to CI after build validation.
-- [ ] Document update and rollback behavior.
+## Phase 3 — Beta packaging and release engineering
+- [x] Define initial preview version metadata (0.1.0-preview.1).
+- [x] Add a self-contained Windows x64 publish step to CI.
+- [x] Package the published application as a portable ZIP.
+- [x] Upload the preview ZIP as a short-lived GitHub Actions artifact after build and tests succeed.
+- [ ] Confirm the published artifact downloads, extracts, and launches on a clean Windows 11 x64 machine.
+- [ ] Test on multiple physical GPU configurations, including integrated + dedicated graphics.
+- [ ] Add report serialization tests and verify exported JSON on real systems.
+- [ ] Decide on a signed installer or MSIX only after the portable preview is validated.
+- [ ] Define stable release notes, versioning, and update/rollback behavior.
 
 ## Phase 4 — Authorized integration research
 - [ ] Review official Rockstar announcements and distribution requirements.
 - [ ] Confirm legal and technical feasibility before considering integration.
 - [ ] Document verified requirements only from an authorized PC release.
 - [ ] Prototype only against authorized components.
+
+## First public beta criteria
+
+The first public beta target is the Windows readiness utility, not a playable GTA VI PC port. It should not be called beta until:
+- CI builds and tests pass on the current default branch.
+- A downloadable Windows x64 package is generated from that same successful run.
+- The package launches on a clean Windows 11 x64 system.
+- A complete scan and JSON export work without crashing.
+- Known limitations, privacy behavior, and unsupported configurations are documented.
+- At least one real-world test covers a system with more than one graphics adapter.
 
 ## Release policy
 
