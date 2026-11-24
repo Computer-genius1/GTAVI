@@ -7,7 +7,7 @@ An independent community software project building Windows 11 system-readiness a
 
 ## Current status
 
-**Status: Early development — Windows diagnostics dashboard, GPU inventory, Direct3D capability checks, graphics device health reporting, and an overall diagnostic status summary implemented.**
+**Status: Early development — Windows diagnostics dashboard, GPU inventory, Direct3D capability checks, graphics device health reporting, and an overall diagnostic status summary implemented. A Windows x64 self-contained preview package is now produced by CI after successful build and test steps.**
 
 The native Windows desktop application can inspect local Windows and hardware information, report graphics adapter and driver details, and export a JSON report.
 
@@ -28,7 +28,7 @@ This is a system information utility, **not a GTA VI compatibility verdict**. No
 - System model, manufacturer, BIOS version, DirectX registry version, and fixed-drive capacity reporting.
 - User-initiated JSON report export.
 - Automated tests for platform compatibility, graphics adapter formatting, graphics API capability reporting, graphics driver health formatting, and overall diagnostic classification.
-- GitHub Actions workflow to restore, build, and test on Windows.
+- GitHub Actions workflow to restore, build, test, publish a self-contained Windows x64 preview, and upload it as a short-lived workflow artifact.
 
 All collected information is read locally. The app does not upload diagnostic data or collect personal files. GPU memory and driver details depend on what the installed Windows driver exposes through WMI and may be incomplete or rounded. Driver health reflects Windows-reported Plug and Play status; a missing driver version or date is reported as unavailable, not automatically labeled a fault. The app does not decide whether a driver is outdated or attempt to update or repair it. The overall status is a transparent summary of three Windows checks, not a numeric score or a GTA VI compatibility verdict. An experimental or incomplete result is labeled Unable to Verify rather than assumed healthy. Direct3D checks create devices on the default hardware adapter only; they do not enumerate every adapter, measure performance, or establish game compatibility.
 
@@ -59,7 +59,16 @@ dotnet test GTAVI.sln --configuration Release
 dotnet run --project src/GTAVI.Windows/GTAVI.Windows.csproj
 ```
 
-The first build restores the System.Management dependency used for hardware inventory. A successful GitHub Actions run will provide an additional clean-build check; until that workflow completes, the project should be treated as unverified on a clean machine.
+The first build restores the System.Management dependency used for hardware inventory. A successful GitHub Actions run provides an additional clean-build check; the preview package is uploaded only after the workflow's build and test steps succeed.
+
+## Downloading a CI preview
+
+1. Open the repository's **Actions** tab.
+2. Select a completed **Windows build** run with a successful conclusion.
+3. Under **Artifacts**, download `GTAVI-Windows-Readiness-win-x64`.
+4. Extract the ZIP and run `GTAVI.Windows.exe` on Windows 11 x64.
+
+The preview is self-contained and includes the .NET runtime, so a separate .NET runtime installation should not be required. This is a portable ZIP, not an installer. CI artifacts are temporary (14-day retention), are not digitally signed, and are development previews rather than stable releases. Do not use an artifact from a failed or untrusted workflow run.
 
 ## Repository layout
 
@@ -92,7 +101,8 @@ GTAVI/
 2. Add tests for report generation and inventory edge cases.
 3. Add structured local logging and report redaction controls.
 4. Improve accessibility, interface scaling, and packaging.
-5. Research any future game integration only if authorized PC game components and required permissions become available.
+5. Validate the downloadable preview artifact on physical Windows 11 x64 systems before calling it a public beta.
+6. Research any future game integration only if authorized PC game components and required permissions become available.
 
 ## Contributing
 
