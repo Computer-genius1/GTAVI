@@ -30,6 +30,7 @@ The current app is a system-readiness utility. It does not launch, modify, emula
 The WPF application currently provides:
 - A dark, scrollable diagnostics dashboard.
 - A Windows 11 platform gate and architecture status.
+- Multi-adapter graphics inventory with driver and current display-mode details.
 - A user-initiated hardware and operating-system scan.
 - A user-initiated JSON report export.
 
@@ -40,13 +41,13 @@ The inventory service reads:
 - Operating-system and process architecture.
 - CPU name, core count, and logical processor count.
 - Installed physical memory.
-- Graphics adapter names.
+- Graphics adapter names, driver version and date, video processor, Windows-reported adapter memory, and current display resolution where WMI provides them.
 - System manufacturer and model.
 - BIOS version.
-- DirectX registry version.
+- DirectX registry version (informational only; it does not establish supported Direct3D feature levels).
 - Ready local fixed-drive capacity and free space.
 
-WMI and registry failures are handled as unavailable values where possible. The scan does not require administrator privileges by design, and results may be incomplete on systems where Windows restricts inventory access.
+WMI and registry failures are handled as unavailable values where possible. The scan does not require administrator privileges by design, and results may be incomplete on systems where Windows restricts inventory access. GPU memory values are sourced from the WMI AdapterRAM field and may be capped or reported imprecisely by some drivers; they must not be treated as authoritative dedicated-VRAM measurements.
 
 ### 3. Platform assessment
 
