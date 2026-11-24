@@ -34,6 +34,7 @@ public sealed class ReportExportServiceTests
         {
             new DiagnosticItem("Processor", "Example CPU", "8 cores; 16 threads"),
             new DiagnosticItem("Graphics adapters", "Example GPU", "Driver 1.2.3"),
+            new DiagnosticItem("Graphics driver health", "Example GPU — OK (Code 0)", "Driver 1.2.3"),
             new DiagnosticItem("System model", "Example Laptop", ""),
             new DiagnosticItem("Installed memory", "16.0 GB", "Physical memory")
         };
@@ -46,7 +47,8 @@ public sealed class ReportExportServiceTests
         Assert.Equal("Redacted by user", diagnostics[0].GetProperty("Value").GetString());
         Assert.Equal("Redacted by user", diagnostics[1].GetProperty("Value").GetString());
         Assert.Equal("Redacted by user", diagnostics[2].GetProperty("Value").GetString());
-        Assert.Equal("16.0 GB", diagnostics[3].GetProperty("Value").GetString());
+        Assert.Equal("Redacted by user", diagnostics[3].GetProperty("Value").GetString());
+        Assert.Equal("16.0 GB", diagnostics[4].GetProperty("Value").GetString());
         Assert.DoesNotContain("Example CPU", json);
         Assert.DoesNotContain("Example GPU", json);
         Assert.DoesNotContain("Example Laptop", json);
