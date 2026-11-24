@@ -1,4 +1,5 @@
 using System.Management;
+using System.Runtime.InteropServices;
 using GTAVI.Windows.Models;
 
 namespace GTAVI.Windows.Services;
