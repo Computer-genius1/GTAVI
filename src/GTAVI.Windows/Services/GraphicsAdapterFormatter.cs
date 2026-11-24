@@ -12,7 +12,7 @@ public static class GraphicsAdapterFormatter
 
         var header = entries.Length == 1
             ? "1 graphics adapter detected."
-            : $"{entries.Length} graphics adapters detected. Multiple-GPU systems may use different adapters for display and rendering.";
+            : $"{entries.Length} graphics adapters detected. Multiple-GPU systems may use different adapters for display and rendering; this report does not assume which GPU a game would select.";
 
         return header + Environment.NewLine + Environment.NewLine +
                string.Join(Environment.NewLine + Environment.NewLine,
